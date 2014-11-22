@@ -1,0 +1,6 @@
+Format version,1
+User name,"me"
+Date,Jan 19 2008
+SNP count,1013349
+Reference sequence,NCBI Build 36 and Cambridge reference sequence
+Public SNP source,dbSNP 128

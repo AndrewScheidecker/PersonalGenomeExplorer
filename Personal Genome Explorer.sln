@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Personal Genome Explorer", "Personal Genome Explorer.csproj", "{D55B3C51-BF30-40FA-89EE-6F1C0654CF0D}"
+EndProject
+Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 2
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = Personal\u0020Genome\u0020Explorer.csproj
+		SccLocalPath1 = .
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D55B3C51-BF30-40FA-89EE-6F1C0654CF0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D55B3C51-BF30-40FA-89EE-6F1C0654CF0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D55B3C51-BF30-40FA-89EE-6F1C0654CF0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D55B3C51-BF30-40FA-89EE-6F1C0654CF0D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

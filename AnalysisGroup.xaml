@@ -1,0 +1,28 @@
+﻿<Page x:Class="Personal_Genome_Explorer.AnalysisGroup"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="AnalysisGroup"
+	Name="analysisGroupWindow">
+    <Grid>
+        <StackPanel>
+			<Grid>
+				<Rectangle Stroke="#FF000000" StrokeThickness="4">
+					<Rectangle.Fill>
+						<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+							<GradientStop Color="{Binding ElementName=analysisGroupWindow,Path=BackgroundColor}" Offset="0"/>
+							<GradientStop Color="#FFFFFFFF" Offset="1"/>
+						</LinearGradientBrush>
+					</Rectangle.Fill>
+				</Rectangle>
+				<Grid Margin="4,4,4,4">
+		            <DockPanel>
+		                <Expander Padding="8" VerticalAlignment="Center" DockPanel.Dock="Left" Name="expander">
+		                </Expander>
+		                <Label Name="groupLabel" FontSize="30" FontWeight="Bold">Label</Label>
+		            </DockPanel>
+				</Grid>
+			</Grid>
+            <StackPanel Name="childStack" Margin="40,0,0,0" />
+        </StackPanel>
+    </Grid>
+</Page>
