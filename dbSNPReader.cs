@@ -3,6 +3,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Personal_Genome_Explorer
 {
@@ -26,9 +28,9 @@ namespace Personal_Genome_Explorer
 		}
 
 		/** Processes SNP orientation info from the parent stream and updates the local SNP database. */
-		public void ProcessSNPOrientationInfo()
+		public void ProcessSNPOrientationInfo(CancellationToken cancellationToken)
 		{
-			while(!parentStream.EndOfStream)
+			while(!cancellationToken.IsCancellationRequested && !parentStream.EndOfStream)
 			{
 				// Read blocks separated by empty lines.
 				string currentBlock = "";

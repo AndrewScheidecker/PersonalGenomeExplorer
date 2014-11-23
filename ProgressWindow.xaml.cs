@@ -16,30 +16,21 @@ using System.ComponentModel;
 namespace Personal_Genome_Explorer
 {
 	// A delegate that receives progress updates.
-	public delegate void AddProgressMessageDelegate(string progressText);
+	public delegate void UpdateProgressDelegate(string progressText,double progress);
 
 	/// <summary>
 	/// Interaction logic for Progress.xaml
 	/// </summary>
 	public partial class ProgressWindow : Window
 	{
-		// Indicates whether the user has requested that the operation be cancelled.
-		public bool bCancelRequested = false;
-
 		private bool bForcingClose = false;
 
-		public ProgressWindow()
-		{
-			InitializeComponent();
+		private Action OnClose;
 
-			this.Closing += delegate(object sender,CancelEventArgs args)
-			{
-				bCancelRequested = true;
-				if(bForcingClose)
-				{
-					args.Cancel = false;
-				}
-			};
+		public ProgressWindow(Action InOnClose)
+		{
+			OnClose = InOnClose;
+			InitializeComponent();
 		}
 
 		public void ForceClose()
@@ -48,26 +39,24 @@ namespace Personal_Genome_Explorer
 			Close();
 		}
 
-		public void AddProgressMessage(string progressText)
+		public void OnCancel(object sender, RoutedEventArgs args)
 		{
-			progressTextBox.Text += string.Format("{0}\n",progressText);
+			OnClose();
+		}
 
-			// Create a new dispatcher frame.
-			DispatcherFrame dispatcherFrame = new DispatcherFrame();
+		public void OnClosing(object sender,CancelEventArgs args)
+		{
+			OnClose();
+			if (bForcingClose)
+			{
+				args.Cancel = false;
+			}
+		}
 
-			// Add an event to the end of the thread's queue that stops the new dispatcher frame from processing events.
-			Dispatcher.CurrentDispatcher.BeginInvoke(
-				DispatcherPriority.Background,
-				new DispatcherOperationCallback(delegate(object context)
-				{
-					dispatcherFrame.Continue = false;
-					return null;
-				}),
-				null
-				);
-
-			// Process events in the new dispatcher frame.  This will return once it reaches the stop message enqueued above.
-			Dispatcher.PushFrame(dispatcherFrame);
+		public void Update(string progressText, double progress)
+		{
+			progressLabel.Content = string.Format("{0}\n", progressText);
+			progressBar.Value = progress * 100.0;
 		}
 	}
 }

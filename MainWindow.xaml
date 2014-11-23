@@ -10,8 +10,8 @@
                     <MenuItem Header="_New" Click="menuClick_FileNew" />
                     <Separator/>
                     <MenuItem Header="_Open genome file" Click="menuClick_FileOpen" />
-                    <MenuItem Header="_Import genome from 23andme data file" Click="menuClick_ImportFrom_23AndMe" />
-					<MenuItem Header="_Import genome from deCODEme data file" Click="menuClick_ImportFrom_deCODEme" />
+                    <MenuItem Header="_Import genome from 23andme data file" Click="menuClick_ImportFrom_23AndMeAsync" />
+					<MenuItem Header="_Import genome from deCODEme data file" Click="menuClick_ImportFrom_deCODEmeAsync" />
                     <Separator/>
                     <MenuItem Header="_Save" Click="menuClick_FileSave" />
                     <MenuItem Header="Save _As" Click="menuClick_FileSaveAs" />
@@ -26,8 +26,8 @@
                     <MenuItem Header="_Generate random YRI data" Click="menuClick_RandomizeDataYRI" />
                 </MenuItem>
                 <MenuItem Header="_SNP Database">
-                    <MenuItem Header="_Import SNP info from SNPedia.com" Click="menuClick_ImportFromSNPedia" />
-					<MenuItem Header="Import SNP orientation info from dbSNP files" Click="menuClick_ImportFromdbSNP" />
+                    <MenuItem Header="_Import SNP info from SNPedia.com" Click="menuClick_ImportFromSNPediaAsync" />
+					<MenuItem Header="Import SNP orientation info from dbSNP files" Click="menuClick_ImportFromdbSNPAsync" />
                     <MenuItem Header="_Revert to default database" Click="menuClick_RevertSNPDatabase" />
                     <MenuItem Header="_Load SNP database from file" Click="menuClick_LoadSNPDatabase" />
                     <MenuItem Header="_Save SNP database to file" Click="menuClick_SaveSNPDatabase" />

@@ -16,6 +16,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using WinForms = System.Windows.Forms;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Personal_Genome_Explorer
 {
@@ -229,7 +231,7 @@ namespace Personal_Genome_Explorer
 			Close();
 		}
 
-		private void menuClick_ImportFrom_23AndMe(object sender, RoutedEventArgs args)
+		private async void menuClick_ImportFrom_23AndMeAsync(object sender, RoutedEventArgs args)
 		{
 			var dialog = new WinForms.OpenFileDialog();
 			dialog.Filter = TwentyThreeAndMeReader.fileFilterString;
@@ -239,8 +241,7 @@ namespace Personal_Genome_Explorer
                 using (var fileStream = dialog.OpenFile())
                 {
                     var streamReader = new StreamReader(fileStream);
-                    IndividualGenomeDatabase database;
-                    (new TwentyThreeAndMeReader(streamReader)).Read(out database);
+					var database = await Task.Run(() => (new TwentyThreeAndMeReader(streamReader)).Read());
 
                     App.document = database;
                     App.documentSaveStream = null;
@@ -251,7 +252,7 @@ namespace Personal_Genome_Explorer
             }
 		}
 
-		private void menuClick_ImportFrom_deCODEme(object sender, RoutedEventArgs args)
+		private async void menuClick_ImportFrom_deCODEmeAsync(object sender, RoutedEventArgs args)
 		{
 			var dialog = new WinForms.OpenFileDialog();
 			dialog.Filter = deCODEmeReader.fileFilterString;
@@ -261,8 +262,7 @@ namespace Personal_Genome_Explorer
 				using (var fileStream = dialog.OpenFile())
 				{
 					var streamReader = new StreamReader(fileStream);
-					IndividualGenomeDatabase database;
-					(new deCODEmeReader(streamReader)).Read(out database);
+					var database = await Task.Run(() =>(new deCODEmeReader(streamReader)).Read());
 
 					App.document = database;
 					App.documentSaveStream = null;
@@ -319,7 +319,7 @@ namespace Personal_Genome_Explorer
             InitAnalysis();
         }
 
-		private void menuClick_ImportFromSNPedia(object sender, RoutedEventArgs args)
+		private async void menuClick_ImportFromSNPediaAsync(object sender, RoutedEventArgs args)
 		{
 			// Don't allow importing the SNPedia data unless this isn't an end user (i.e. the app is being debugged)
 			if(!Debugger.IsAttached)
@@ -332,20 +332,15 @@ namespace Personal_Genome_Explorer
 			IsEnabled = false;
 
 			// Create the progress window.
-			var progressWindow = new ProgressWindow();
+			var cancellationTokenSource = new CancellationTokenSource();
+			var progressWindow = new ProgressWindow(() => cancellationTokenSource.Cancel());
 			progressWindow.Owner = this;
 			progressWindow.Show();
 
 			// Try to read the data from the provided 23andme username.
-			var newDatabase = SNPediaReader.CreateSNPDatabase(
-				delegate(string progressText)
-				{
-					progressWindow.AddProgressMessage(progressText);
-				},
-				delegate()
-				{
-					return progressWindow.bCancelRequested;
-				}
+			var newDatabase = await SNPediaReader.CreateSNPDatabaseAsync(
+				(progressText,progress) => progressWindow.Update(progressText,progress),
+				cancellationTokenSource.Token
 				);
 
 			// Close the progress window and reenable the main window.
@@ -362,20 +357,36 @@ namespace Personal_Genome_Explorer
 			}
 		}
 
-		private void menuClick_ImportFromdbSNP(object sender, RoutedEventArgs args)
+		private async void menuClick_ImportFromdbSNPAsync(object sender, RoutedEventArgs args)
 		{
 			var dialog = new WinForms.OpenFileDialog();
 			dialog.Filter = "dbSNP flat files|*.flat|All files (*.*)|*.*";
 			dialog.Multiselect = true;
 			if (dialog.ShowDialog() == WinForms.DialogResult.OK)
 			{
-				foreach(var filename in dialog.FileNames)
+				// Disable the main window.
+				IsEnabled = false;
+
+				// Create the progress window.
+				var cancellationTokenSource = new CancellationTokenSource();
+				var progressWindow = new ProgressWindow(() => cancellationTokenSource.Cancel());
+				progressWindow.Owner = this;
+				progressWindow.Show();
+
+				var fileNameList = dialog.FileNames.ToList();
+				for(var fileIndex = 0;fileIndex < fileNameList.Count;++fileIndex)
 				{
+					var filename = fileNameList[fileIndex];
 					using(var fileStream = new FileStream(filename,FileMode.Open,FileAccess.Read))
 					{
-						(new dbSNPReader(new StreamReader(fileStream))).ProcessSNPOrientationInfo();
+						progressWindow.Update(string.Format("Processing {0}", filename), (double)fileIndex / fileNameList.Count);
+						await Task.Run(()=>(new dbSNPReader(new StreamReader(fileStream))).ProcessSNPOrientationInfo(cancellationTokenSource.Token));
 					}
 				}
+
+				// Close the progress window and reenable the main window.
+				progressWindow.ForceClose();
+				IsEnabled = true;
 
 				// Reanalyse after updating the SNP database.
 				InitAnalysis();

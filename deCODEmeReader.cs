@@ -19,11 +19,10 @@ namespace Personal_Genome_Explorer
 			inParentReader.ReadLine();
 		}
 
-        public void Read(out IndividualGenomeDatabase database)
+		public IndividualGenomeDatabase Read()
         {
 			// Initialize the database.
-			var newDatabase = new IndividualGenomeDatabase();
-			database = newDatabase;
+			var database = new IndividualGenomeDatabase();
 
 			// Read the table of SNP genotypes.
 			tableReader.Read(
@@ -38,9 +37,10 @@ namespace Personal_Genome_Explorer
 						snpValue.orientation = DNA.StringToOrientation(columns[4]);
 
 						// Add the SNP genotype to the database.
-						newDatabase.AddSNPValue(snpId, snpValue);
+						database.AddSNPValue(snpId, snpValue);
 					}
 				});
+			return database;
         }
 	}
 }

@@ -134,6 +134,7 @@ namespace Personal_Genome_Explorer
 				var genotypeInfo = new SNPGenotypeInfo();
 				genotypeInfo.genotype = personalGenotype;
 				genotypeInfo.trait = "";
+				genotypeInfo.populationFrequencies = new Dictionary<string, float>();
 				genotypeList.Items.Add(new SNPGenotypeUIAdapter(
 					genotypeInfo,
 					true
