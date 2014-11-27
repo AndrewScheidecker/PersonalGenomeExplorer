@@ -19,7 +19,8 @@ namespace Personal_Genome_Explorer
 		Regex allelesRegex = new Regex("alleles=\'([^\'.]*)\'");
 
 		/** A regex that matches text like this: CTG | assembly=reference | chr=MT | chr-pos=8270 | NC_001807.4 | ctg-start=8270 | ctg-end=8270 | loctype=2 | orient=- */
-		Regex buildOrientationRegex = new Regex("CTG.*assembly=reference.*orient=([-+])");
+		// CTG | assembly=GRCh38 | chr=1 | chr-pos=230710048 | NT_167186.2 | ctg-start=7101113 | ctg-end=7101113 | loctype=2 | orient=-
+		Regex buildOrientationRegex = new Regex("CTG.*orient=([-+])");
 
 		/** Initialization constructor. */
 		public dbSNPReader(StreamReader inParentStream)
