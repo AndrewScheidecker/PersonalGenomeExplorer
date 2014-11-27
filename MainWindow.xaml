@@ -5,7 +5,7 @@
 	Title="Personal Genome Explorer" Height="512" Width="800" Topmost="False" Top="0" ForceCursor="False" xmlns:d="http://schemas.microsoft.com/expression/blend/2006" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" Icon="DNA.ico">
     <Grid>
         <DockPanel>
-            <Menu DockPanel.Dock="Top" Height="20" VerticalAlignment="Top">
+            <Menu DockPanel.Dock="Top" VerticalAlignment="Top">
                 <MenuItem Header="_File">
                     <MenuItem Header="_New" Click="menuClick_FileNew" />
                     <Separator/>

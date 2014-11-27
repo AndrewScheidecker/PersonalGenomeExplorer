@@ -70,10 +70,10 @@
 	</Page.Resources>
 	<Grid>
 		<Rectangle Stroke="#FF000000" StrokeThickness="4" Style="{StaticResource GradientRectangle}"/>
-		<Label Width="56" HorizontalAlignment="Left" Height="24" VerticalAlignment="Top" Margin="4,17,0,0" Content="SNP ID"/>
-		<TextBox x:Name="snpTextBox" Margin="60,17,0,0" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="100" />
+		<Label HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,17,0,0" Content="SNP ID"/>
+		<TextBox x:Name="snpTextBox" Margin="80,17,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="100" />
 		<ListBox Margin="20,54,20,19" HorizontalAlignment="Left" x:Name="snpListBox" Style="{StaticResource snpListStyle}" ItemTemplate="{StaticResource snpColumnInfo}" IsHitTestVisible="True" />
-		<Button Height="23" HorizontalAlignment="Left" Margin="169,17,0,0" x:Name="addButton" VerticalAlignment="Top" Width="50" Content="Add"/>
-		<Button Height="23" Margin="0,18,20,0" x:Name="removeButton" VerticalAlignment="Top" HorizontalAlignment="Right" Width="100" Content="Remove selected"/>
+		<Button HorizontalAlignment="Left" Margin="190,17,0,0" x:Name="addButton" VerticalAlignment="Top" Content="Add"/>
+		<Button Margin="0,18,20,0" x:Name="removeButton" VerticalAlignment="Top" HorizontalAlignment="Right" Content="Remove selected"/>
 	</Grid>
 </Page>
