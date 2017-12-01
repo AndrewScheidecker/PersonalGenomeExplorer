@@ -150,7 +150,7 @@ namespace Personal_Genome_Explorer
 					firstQueryPage = null;
 
 					// Read the query continue element.
-					var continueElement = result.resultXML.SelectSingleNode("query-continue/allpages");
+					var continueElement = result.resultXML.SelectSingleNode("continue");
 					if (continueElement != null)
 					{
 						firstQueryPage = continueElement.Attributes["apcontinue"].Value;
