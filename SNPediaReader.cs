@@ -17,7 +17,7 @@ namespace Personal_Genome_Explorer
 	class SNPediaReader
 	{
 		/** The base URI for the SNPedia MediaWiki. */
-		private static string baseURI = "http://www.snpedia.com/";
+		private static string baseURI = "https://bots.snpedia.com/";
 
 		/** The maximum number of pages to request listing of at a time.  The MediaWiki API limits this to 500. */
 		private static int maxPagesRequest = 500;
