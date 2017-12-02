@@ -8,20 +8,20 @@ using System.Threading.Tasks;
 
 namespace Personal_Genome_Explorer
 {
-	class dbSNPReader
+    class dbSNPReader
 	{
 		StreamReader parentStream;
 
 		/** A regex that matches text like this: rs8896 */
-		Regex snpIdRegex = new Regex("^(rs\\d+)");
+		Regex snpIdRegex = new Regex("^(rs\\d+)", RegexOptions.Compiled);
 
-		/** A regex that matches text like this: alleles='C/T' */
-		Regex allelesRegex = new Regex("alleles=\'([^\'.]*)\'");
-
-		/** A regex that matches text like this: CTG | assembly=reference | chr=MT | chr-pos=8270 | NC_001807.4 | ctg-start=8270 | ctg-end=8270 | loctype=2 | orient=- */
-		// CTG | assembly=GRCh38 | chr=1 | chr-pos=230710048 | NT_167186.2 | ctg-start=7101113 | ctg-end=7101113 | loctype=2 | orient=-
-		Regex buildOrientationRegex = new Regex("CTG.*orient=([-+])");
-
+		/** A regex that matches either alleles or orientation declarations:
+         *  alleles='C/T'
+         * or:
+         *  CTG...orient=-
+         */
+		Regex snpInfoRegex = new Regex("(alleles=\'([^\'.]*)\')|(CTG.*orient=([-+]))", RegexOptions.Compiled);
+ 
 		/** Initialization constructor. */
 		public dbSNPReader(StreamReader inParentStream)
 		{
@@ -34,53 +34,65 @@ namespace Personal_Genome_Explorer
 			while(!cancellationToken.IsCancellationRequested && !parentStream.EndOfStream)
 			{
 				// Read blocks separated by empty lines.
-				string currentBlock = "";
 				while(!parentStream.EndOfStream)
 				{
-					var line = parentStream.ReadLine();
-					currentBlock += line;
-					currentBlock += "\r\n";
-					if(line == "")
-					{
-						break;
-					}
-				};
+					var snpLine = parentStream.ReadLine();
 
-				// Parse the rs# for the SNP.
-				string snpId = Utilities.GetSingleRegexMatch(currentBlock,snpIdRegex,null);
-				if(snpId != null)
-				{
-					// Ignore SNPs that aren't in the local database.
-					if(SNPDatabaseManager.localDatabase.snpToInfoMap.ContainsKey(snpId.ToLowerInvariant()))
-					{
-						// Ignore SNPs that we already know the orientation of.
-						var snpInfo = SNPDatabaseManager.localDatabase.snpToInfoMap[snpId];
+				    // Parse the rs# for the SNP.
+				    string snpId = Utilities.GetSingleRegexMatch(snpLine, snpIdRegex,null);
+                    if (snpId != null)
+                    {
+                        // Skip SNPs that aren't in the local database.
+                        if (!SNPDatabaseManager.localDatabase.snpToInfoMap.ContainsKey(snpId.ToLowerInvariant()))
+                        {
+                            while (!parentStream.EndOfStream)
+                            {
+                                var infoLine = parentStream.ReadLine();
+                                if (infoLine == "") { break; }
+                            }
+                        }
+                        else
+                        {
+                            var snpInfo = SNPDatabaseManager.localDatabase.snpToInfoMap[snpId];
+                            var snpOrientationInfo = new SNPOrientationInfo();
 
-						// Parse the orientation of the refSNP cluster on the reference human genome build.
-						string buildOrientationString = Utilities.GetSingleRegexMatch(currentBlock,buildOrientationRegex,null);
-						if (buildOrientationString != null)
-						{
-							Orientation buildOrientation = DNA.StringToOrientation(buildOrientationString);
-							Debug.Assert(buildOrientation != Orientation.Unknown);
+                            // After reading a SNP heading, read info lines that are associated with the SNP until a blank line is encountered.
+                            while (!parentStream.EndOfStream)
+                            {
+                                var infoLine = parentStream.ReadLine();
+                                if (infoLine == "") { break; }
 
-							// Parse the alleles for this SNP.
-							string alleles = Utilities.GetSingleRegexMatch(currentBlock,allelesRegex,"").ToUpperInvariant();
+                                // Parse the orientation of the refSNP cluster on the reference human genome build.
+                                var regexMatch = snpInfoRegex.Match(infoLine);
+                                if (regexMatch.Success)
+                                {
+                                    if (regexMatch.Groups[2].Success)
+                                    {
+                                        // Parse the alleles for this SNP.
+                                        string alleles = regexMatch.Groups[2].Value;
 
-							// Parse the alleles of the SNP oriented to the refSNP.
-							var orientationInfo = new SNPOrientationInfo();
-							orientationInfo.bHasAlleleA = alleles.Contains("A");
-							orientationInfo.bHasAlleleT = alleles.Contains("T");
-							orientationInfo.bHasAlleleC = alleles.Contains("C");
-							orientationInfo.bHasAlleleG = alleles.Contains("G");
-							orientationInfo.orientation = buildOrientation;
+                                        // Parse the alleles of the SNP oriented to the refSNP.
+                                        snpOrientationInfo.bHasAlleleA = alleles.Contains("A");
+                                        snpOrientationInfo.bHasAlleleT = alleles.Contains("T");
+                                        snpOrientationInfo.bHasAlleleC = alleles.Contains("C");
+                                        snpOrientationInfo.bHasAlleleG = alleles.Contains("G");
+                                    }
+                                    else
+                                    {
+                                        Debug.Assert(regexMatch.Groups[4].Success);
+                                        snpOrientationInfo.orientation = DNA.StringToOrientation(regexMatch.Groups[4].Value);
+                                        Debug.Assert(snpOrientationInfo.orientation != Orientation.Unknown);
+                                    }
+                                }
+                            }
 
-							// Set the orientation of this SNP in the database.
-							var snpOrientation = orientationInfo.GetOrientation(snpInfo);
-							Debug.Assert(snpOrientation == snpInfo.orientation || snpInfo.orientation == Orientation.Unknown);
-							snpInfo.orientation = snpOrientation;
-							SNPDatabaseManager.localDatabase.snpToInfoMap[snpId] = snpInfo;
-						}
-					}
+                            // Set the orientation of this SNP in the database.
+                            var snpOrientation = snpOrientationInfo.GetOrientation(snpInfo);
+                            Debug.Assert(snpOrientation == snpInfo.orientation || snpInfo.orientation == Orientation.Unknown);
+                            snpInfo.orientation = snpOrientation;
+                            SNPDatabaseManager.localDatabase.snpToInfoMap[snpId] = snpInfo;
+                        }
+                    }
 				}
 			};
 		}
