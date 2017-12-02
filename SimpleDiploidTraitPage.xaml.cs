@@ -38,13 +38,6 @@ namespace Personal_Genome_Explorer
 		{
 			get { return genotypeInfo.genotype.ToString(); }
 		}
-		public string You
-		{
-			get
-			{
-                return bPersonalGenotype ? genotypeInfo.genotype.ToString() : "";
-			}
-		}
 		public string Trait
 		{
 			get { return genotypeInfo.trait; }
@@ -54,7 +47,7 @@ namespace Personal_Genome_Explorer
 			get
 			{
 				return genotypeInfo.populationFrequencies.ContainsKey("CEU") ?
-					string.Format("{0}%",genotypeInfo.populationFrequencies["CEU"] * 100.0f) :
+					string.Format("{0:F1}%",genotypeInfo.populationFrequencies["CEU"] * 100.0f) :
 					"?";
 			}
 		}
@@ -63,7 +56,7 @@ namespace Personal_Genome_Explorer
 			get
 			{
 				return genotypeInfo.populationFrequencies.ContainsKey("HCB") ?
-					string.Format("{0}%", genotypeInfo.populationFrequencies["HCB"] * 100.0f) :
+					string.Format("{0:F1}%", genotypeInfo.populationFrequencies["HCB"] * 100.0f) :
 					"?";
 			}
 		}
@@ -72,7 +65,7 @@ namespace Personal_Genome_Explorer
 			get
 			{
 				return genotypeInfo.populationFrequencies.ContainsKey("JPT") ?
-					string.Format("{0}%", genotypeInfo.populationFrequencies["JPT"] * 100.0f) :
+					string.Format("{0:F1}%", genotypeInfo.populationFrequencies["JPT"] * 100.0f) :
 					"?";
 			}
 		}
@@ -81,7 +74,7 @@ namespace Personal_Genome_Explorer
 			get
 			{
 				return genotypeInfo.populationFrequencies.ContainsKey("YRI") ?
-					string.Format("{0}%", genotypeInfo.populationFrequencies["YRI"] * 100.0f) :
+					string.Format("{0:F1}%", genotypeInfo.populationFrequencies["YRI"] * 100.0f) :
 					"?";
 			}
 		}

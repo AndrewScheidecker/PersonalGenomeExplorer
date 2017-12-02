@@ -2,7 +2,7 @@
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	x:Class="Personal_Genome_Explorer.MainWindow"
-	Title="Personal Genome Explorer" Height="512" Width="800" Topmost="False" Top="0" ForceCursor="False" xmlns:d="http://schemas.microsoft.com/expression/blend/2006" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" Icon="DNA.ico">
+	Title="Personal Genome Explorer" Height="1024" Width="1024" Topmost="False" Top="0" ForceCursor="False" xmlns:d="http://schemas.microsoft.com/expression/blend/2006" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" Icon="DNA.ico">
     <Grid>
         <DockPanel>
             <Menu DockPanel.Dock="Top" VerticalAlignment="Top">
@@ -37,16 +37,10 @@
 				</MenuItem>
             </Menu>
 			<Grid>
-				<Rectangle>
-					<Rectangle.Fill>
-						<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-							<GradientStop Color="#FF8C8C8C" Offset="0"/>
-							<GradientStop Color="#FF8C8C8C" Offset="1"/>
-						</LinearGradientBrush>
-					</Rectangle.Fill>
+				<Rectangle Fill="White">
 				</Rectangle>
-				<ScrollViewer>
-						<StackPanel Name="analysisStack" />
+				<ScrollViewer HorizontalScrollBarVisibility="Auto">
+						<StackPanel x:Name="analysisStack" />
 				</ScrollViewer>
 			</Grid>
         </DockPanel>
