@@ -32,55 +32,21 @@ namespace Personal_Genome_Explorer
 			InitializeComponent();
 			InitAnalysis();
 		}
-
-		private void AddAnalysis(UIElement analysisElement)
-		{
-			if (analysisElement != null)
-			{
-				var frame = new Frame();
-				frame.Content = analysisElement;
-				analysisStack.Children.Add(frame);
-			}
-		}
-
+  
 		private void InitAnalysis()
-		{
-			analysisStack.Children.Clear();
+        {
+            // Clear the existing analyses and force them to be garbage collected.
+            analysisStack.Children.Clear();
+            GC.Collect();
 
-			// Force the old analysis pages to be garbage collected.
-			GC.Collect();
-
-			// Use reflection to iterate over the static methods of the analyses type.
-			var analysisMembers = typeof(Analyses).FindMembers(
-				System.Reflection.MemberTypes.Method,
-				BindingFlags.Static | BindingFlags.Public,
-				delegate(MemberInfo member,object filterCriteria) { return true; },
-				null
-				);
-			foreach (var analysisMember in analysisMembers)
-			{
-				var analysisMethod = (MethodInfo)analysisMember;
-
-				// Only process members with the analysis attribute.
-				object[] analysisAttributes = analysisMethod.GetCustomAttributes(typeof(AnalysisAttribute), false);
-				if(analysisAttributes.Length > 0)
-				{
-					Debug.Assert(analysisAttributes[0].GetType() == typeof(AnalysisAttribute));
-
-					// Invoke the analysis.
-					object result = analysisMethod.Invoke(null,new object[] {});
-					if(result != null)
-					{
-						// Add the analysis's UIElement to the analysis grid.
-						Debug.Assert(result.GetType() == typeof(List<UIElement>));
-						var analysisElements = (List<UIElement>)result;
-						foreach(var analysisElement in analysisElements)
-						{
-							AddAnalysis(analysisElement);
-						}
-					}
-				}
-			}
+            // Run the SNPedia analysis and add the resulting UI elements to the analysis StackPanel.
+            var analysisElements = Analyses.SNPedia();
+            foreach (var analysisElement in analysisElements)
+            {
+                var frame = new Frame();
+                frame.Content = analysisElement;
+                analysisStack.Children.Add(frame);
+            }
 		}
 
 		private void menuClick_FileNew(object sender,RoutedEventArgs args)

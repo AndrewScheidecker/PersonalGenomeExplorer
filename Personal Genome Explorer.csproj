@@ -143,12 +143,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="SNPLookupPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -193,9 +187,6 @@
     </Compile>
     <Compile Include="SNPDatabase.cs" />
     <Compile Include="SNPediaReader.cs" />
-    <Compile Include="SNPLookupPage.xaml.cs">
-      <DependentUpon>SNPLookupPage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="TwentyThreeAndMeReader.cs" />
     <Compile Include="Utilities.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
