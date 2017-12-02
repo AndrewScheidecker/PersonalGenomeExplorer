@@ -184,8 +184,8 @@ namespace Personal_Genome_Explorer
 
 		private static string ParseCategoryProperty(string categorySubstring, string propertyTag)
 		{
-			// Parses a category property in the form:  | property = value
-			return Utilities.GetSingleRegexMatch(categorySubstring, new Regex(string.Format("\\|[ \t]*{0}[ \t]*=?[ \t]*([^}}\\|\n]*)", propertyTag), RegexOptions.IgnoreCase), "");
+			// Parses a category property in the form:  | property [=] value
+			return Utilities.GetSingleRegexMatch(categorySubstring, new Regex(string.Format("\\|[ \t]*{0}[ \t]*=?[ \t]*([^}}\n]*)", propertyTag), RegexOptions.IgnoreCase), "");
 		}
 
 		private static List<string> ParseList(string listText)
