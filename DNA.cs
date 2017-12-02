@@ -205,7 +205,7 @@ namespace Personal_Genome_Explorer
 			result.genotype = DiploidGenotype.Read(reader);
 			return result;
 		}
-		public static SNPGenotype ReadLegacy(BinaryReader reader)
+		public static SNPGenotype ReadLegacy0(BinaryReader reader)
 		{
 			var result = new SNPGenotype();
 			var legacyGenotype = DiploidGenotype.Read(reader);

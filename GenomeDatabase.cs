@@ -54,40 +54,47 @@ namespace Personal_Genome_Explorer
 				return null;
 			}
 		}
-		
-		private static char[] referenceFileMagic = new char[] { 'P', 'G', 'F', '1' };
-		private static char[] referenceFileMagicLegacy = new char[] { 'P', 'G', 'F', '0' };
 
-		public void Save(Stream stream)
+        private static char[] referenceFileMagic = new char[] { 'P', 'G', 'F', '2' };
+        private static char[] referenceFileMagicLegacy0 = new char[] { 'P', 'G', 'F', '0' };
+        private static char[] referenceFileMagicLegacy1 = new char[] { 'P', 'G', 'F', '1' };
+
+        private const int numSaltBytes = 24;
+        private const int numIVBytes = 16;
+        private const int numKeyBytes = 32;
+        private const int numHashIterations = 1000;
+
+        public void Save(Stream stream)
 		{
 			var writer = new BinaryWriter(stream);
+            var rng = new RNGCryptoServiceProvider();
 
-			// Write the file magic and version.
-			writer.Write(referenceFileMagic);
+            // Write the file magic and version.
+            writer.Write(referenceFileMagic);
 
-			// The encryption system doesn't handle short passwords gracefully, so extend them to 16 characters with spaces.
-			password = password.PadRight(16, ' ');
+            // Generate random salt and initialization vectors and write them to the file.
+            var salt = new byte[numSaltBytes];
+            rng.GetBytes(salt);
+            writer.Write(salt);
 
-			// Hash the password and save the hash to the file unencrypted.
-			byte[] passwordASCII = ASCIIEncoding.ASCII.GetBytes(password);
-			byte[] passwordHash = (new SHA512Managed()).ComputeHash(passwordASCII);
-			writer.Write(passwordHash);
-			
-			// Choose a random initialization vector.
-			byte[] initializationVector = new byte[16];
-			RandomNumberGenerator.Create().GetBytes(initializationVector);
+            var initializationVector = new byte[numIVBytes];
+            rng.GetBytes(initializationVector);
+            writer.Write(initializationVector);
 
-			// Write the initialization vector.
-			writer.Write(initializationVector);
+            // Use PBKDF2 to hash the password and salt an produce a 256-bit encryption key.
+            byte[] encryptionKey = (new Rfc2898DeriveBytes(password, salt, numHashIterations)).GetBytes(numKeyBytes);
 
-			// Create an encrypting stream to write the un-encrypted data to the file.
+			// Create an AES-256 encrypting stream to write the un-encrypted data to the file.
 			writer = new BinaryWriter(
 				new CryptoStream(
 					stream,
 					Rijndael.Create().CreateEncryptor(
-						passwordASCII,
+						encryptionKey,
 						initializationVector),
 						CryptoStreamMode.Write));
+
+            // Write the file magic a second time to the encrypted stream as a way to verify a password when decrypting.
+            writer.Write(referenceFileMagic);
 
 			// Write the SNP IDs and values to the file.
 			foreach(var pair in snpToGenotypeMap)
@@ -106,36 +113,64 @@ namespace Personal_Genome_Explorer
 
 			// If the file doesn't have the expected magic header, abort and return an error.
 			bool bFileHasMagic = Utilities.ArrayCompare(fileMagic,referenceFileMagic);
-			bool bFileHasLegacyMagic = Utilities.ArrayCompare(fileMagic,referenceFileMagicLegacy);
-			if(!bFileHasMagic && !bFileHasLegacyMagic)
+			bool bFileHasLegacyMagic0 = Utilities.ArrayCompare(fileMagic,referenceFileMagicLegacy0);
+            bool bFileHasLegacyMagic1 = Utilities.ArrayCompare(fileMagic, referenceFileMagicLegacy1);
+            if (!bFileHasMagic && !bFileHasLegacyMagic0 && !bFileHasLegacyMagic1)
 			{
 				return GenomeLoadResult.UnrecognizedFile;
 			}
 
-			// The encryption system doesn't handle short passwords gracefully, so extend them to 16 characters with spaces.
-			password = password.PadRight(16, ' ');
+            if (bFileHasMagic)
+            {
+                // Read the salt and initialization vector.
+                var salt = reader.ReadBytes(numSaltBytes);
+                var initializationVector = reader.ReadBytes(numIVBytes);
 
-			// Read the saved password hash from the file, and compare it to the hash of the password we're trying to load with.
-			// This can't be done by saving some magic header inside the encrypted part of the file, as the CryptoStream will crash when decrypting with the wrong password.
-			byte[] passwordASCII = ASCIIEncoding.ASCII.GetBytes(password);
-			byte[] passwordHash = (new SHA512Managed()).ComputeHash(passwordASCII);
-			byte[] savedPasswordHash = reader.ReadBytes(passwordHash.Length);
-			if (!Utilities.ArrayCompare(passwordHash, savedPasswordHash))
-			{
-				return GenomeLoadResult.IncorrectPassword;
-			}
-			
-			// Read the initialization vector.
-			byte[] initializationVector = reader.ReadBytes(16);
+                // Use PBKDF2 to hash the password and salt an produce a 256-bit encryption key.
+                byte[] encryptionKey = (new Rfc2898DeriveBytes(ASCIIEncoding.ASCII.GetBytes(password), salt, numHashIterations)).GetBytes(numKeyBytes);
 
-			// Create a decrypting stream to read the encrypted data from the file.
-			reader = new BinaryReader(
-				new CryptoStream(
-					stream,
-					Rijndael.Create().CreateDecryptor(
-						ASCIIEncoding.ASCII.GetBytes(password),
-						initializationVector),
-						CryptoStreamMode.Read));
+                // Create a decrypting stream to read the encrypted data from the file.
+                reader = new BinaryReader(
+                    new CryptoStream(
+                        stream,
+                        Rijndael.Create().CreateDecryptor(
+                            encryptionKey,
+                            initializationVector),
+                            CryptoStreamMode.Read));
+
+                // Read the encrypted file magic, and if it doesn't match then the password is wrong.
+                char[] encryptedFileMagic = reader.ReadChars(fileMagic.Length);
+                if(!Utilities.ArrayCompare(encryptedFileMagic,fileMagic))
+                {
+                    return GenomeLoadResult.IncorrectPassword;
+                }
+            }
+            else
+            {
+                // Pad the password to 128 bits.
+                var paddedPassword = password.PadRight(16, ' ');
+
+                // Read the saved password hash from the file, and compare it to the hash of the password we're trying to load with.
+                // This can't be done by saving some magic header inside the encrypted part of the file, as the CryptoStream will crash when decrypting with the wrong password.
+                byte[] passwordHash = (new SHA512Managed()).ComputeHash(ASCIIEncoding.ASCII.GetBytes(paddedPassword));
+                byte[] savedPasswordHash = reader.ReadBytes(passwordHash.Length);
+                if (!Utilities.ArrayCompare(passwordHash, savedPasswordHash))
+                {
+                    return GenomeLoadResult.IncorrectPassword;
+                }
+
+                // Read the initialization vector.
+                byte[] initializationVector = reader.ReadBytes(16);
+
+                // Create a decrypting stream to read the encrypted data from the file.
+                reader = new BinaryReader(
+                    new CryptoStream(
+                        stream,
+                        Rijndael.Create().CreateDecryptor(
+                            ASCIIEncoding.ASCII.GetBytes(paddedPassword),
+                            initializationVector),
+                            CryptoStreamMode.Read));
+            }
 
 			// Create the genome database that's about to be loaded.
 			outResult = new IndividualGenomeDatabase();
@@ -147,9 +182,9 @@ namespace Personal_Genome_Explorer
 				// Read a SNP ID and value pair, and add them to the database.
 				var Key = reader.ReadString();
 				SNPGenotype Genotype;
-				if(bFileHasLegacyMagic)
+				if(bFileHasLegacyMagic0)
 				{
-					Genotype = SNPGenotype.ReadLegacy(reader);
+					Genotype = SNPGenotype.ReadLegacy0(reader);
 				}
 				else
 				{
